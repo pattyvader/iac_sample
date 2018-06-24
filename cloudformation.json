@@ -1,0 +1,75 @@
+{
+    "Description": "AWS CloudFormation Sample Template SNS_AND_SQS_: Sample",
+    "Outputs": {
+        "DeadLetterQueueARN": {
+            "Description": "ARN of the dead letter queue",
+            "Value": {
+                "Fn::GetAtt": [
+                    "deadSQS",
+                    "Arn"
+                ]
+            }
+        },
+        "DeadLetterQueueURL": {
+            "Description": "URL of the dead letter queue",
+            "Value": {
+                "Ref": "deadSQS"
+            }
+        },
+        "SourceQueueARN": {
+            "Description": "ARN of the source queue",
+            "Value": {
+                "Fn::GetAtt": [
+                    "iacSQS",
+                    "Arn"
+                ]
+            }
+        },
+        "SourceQueueURL": {
+            "Description": "URL of the source queue",
+            "Value": {
+                "Ref": "iacSQS"
+            }
+        }
+    },
+    "Resources": {
+        "deadSQS": {
+            "Properties": {
+                "QueueName": "dead__letter_queue__iac_sqs_sample"
+            },
+            "Type": "AWS::SQS::Queue"
+        },
+        "iacSNS": {
+            "Properties": {
+                "Subscription": [
+                    {
+                        "Endpoint": {
+                            "Fn::GetAtt": [
+                                "iacSQS",
+                                "Arn"
+                            ]
+                        },
+                        "Protocol": "sqs"
+                    }
+                ],
+                "TopicName": "iac_sns_sample"
+            },
+            "Type": "AWS::SNS::Topic"
+        },
+        "iacSQS": {
+            "Properties": {
+                "QueueName": "iac_sqs_sample",
+                "RedrivePolicy": {
+                    "deadLetterTargetArn": {
+                        "Fn::GetAtt": [
+                            "deadSQS",
+                            "Arn"
+                        ]
+                    },
+                    "maxReceiveCount": "5"
+                }
+            },
+            "Type": "AWS::SQS::Queue"
+        }
+    }
+}
