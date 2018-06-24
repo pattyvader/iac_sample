@@ -53,4 +53,25 @@ template.add_output([
     ),
 ])
 
+template.add_resource(QueuePolicy(
+    "AllowSNS2SQSPolicy",
+    Queues=[Ref(sqs_aws)],
+    PolicyDocument={
+        "Version": "2008-10-17",
+        "Id": "PublicationPolicy",
+        "Statement": [{
+            "Sid": "Allow-SNS-SendMessage",
+            "Effect": "Allow",
+            "Principal": {
+              "AWS": "*"
+            },
+            "Action": ["sqs:SendMessage"],
+            "Resource": GetAtt(sqs_aws, "Arn"),
+            "Condition": {
+                "ArnEquals": {"aws:SourceArn": Ref(sns_aws)}
+            }
+        }]
+    }
+))
+
 print(template.to_json())
